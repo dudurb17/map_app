@@ -26,6 +26,14 @@ function App() {
         provider={PROVIDER_GOOGLE}
         style={styles.map}
         region={region}
+        showsTraffic={true}
+        // zoomEnabled={false}
+        // rotateEnabled={false}
+        // scrollEnabled={false}
+        // mapType="hybrid"  // satellite, terrain, hybrid
+        // onRegionChangeComplete={() => Alert.alert('Region changed')}
+        // onMapReady={() => Alert.alert('Map ready')}
+        // onTouchStart={() => Alert.alert('Map touched')}
       >
         <Marker
           coordinate={{
