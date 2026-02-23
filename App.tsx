@@ -18,6 +18,7 @@ function App() {
         latitude: -22.90684,
         longitude: -43.17289,
       },
+      image: require('./src/assets/images/carro.png'),
       title: 'Rio de Janeiro',
       description: 'test description',
       pinColor: 'green',
@@ -27,11 +28,13 @@ function App() {
         latitude: -23.55052,
         longitude: -46.63331,
       },
+      image: require('./src/assets/images/carro_right.png'),
       title: 'São Paulo',
       description: 'test description',
       pinColor: 'blue',
     },
     {
+      image: require('./src/assets/images/carro_left.png'),
       coordinate: {
         latitude: -15.7801,
         longitude: -47.9292,
@@ -41,6 +44,7 @@ function App() {
       pinColor: 'red',
     },
     {
+      image: require('./src/assets/images/carro_down.png'),
       coordinate: {
         latitude: -12.9714,
         longitude: -38.5124,
@@ -65,17 +69,17 @@ function App() {
         style={styles.map}
         region={region}
         showsTraffic={true}
-        onPress={event =>
-          setMarkers([
-            ...markers,
-            {
-              coordinate: event.nativeEvent.coordinate,
-              title: 'New Marker',
-              description: 'test description',
-              pinColor: 'green',
-            },
-          ])
-        }
+        // onPress={event =>
+        //   setMarkers([
+        //     ...markers,
+        //     {
+        //       coordinate: event.nativeEvent.coordinate,
+        //       title: 'New Marker',
+        //       description: 'test description',
+        //       pinColor: 'green',
+        //     },
+        //   ])
+        // }
         // zoomEnabled={false}
         // rotateEnabled={false}
         // scrollEnabled={false}
@@ -87,6 +91,7 @@ function App() {
         {markers.map((marker, index) => (
           <Marker
             key={index}
+            image={marker.image}
             coordinate={marker.coordinate}
             title={marker.title}
             description={marker.description}
