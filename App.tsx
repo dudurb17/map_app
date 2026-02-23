@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE, Region } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
@@ -90,13 +90,27 @@ function App() {
       >
         {markers.map((marker, index) => (
           <Marker
-            key={index}
-            image={marker.image}
+            key={`${marker.title}-${index}`}
             coordinate={marker.coordinate}
+            anchor={{ x: 0.5, y: 1 }}
+            tracksViewChanges={false}
             title={marker.title}
             description={marker.description}
-            pinColor={marker.pinColor}
-          />
+          >
+            <View style={styles.markerWrap}>
+              <View style={[styles.markerBubble, { borderColor: marker.pinColor }]}>
+                <Image
+                  source={marker.image}
+                  style={styles.markerImage}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={[styles.markerArrow, { borderTopColor: marker.pinColor }]} />
+              <Text style={styles.markerLabel} numberOfLines={1}>
+                {marker.title}
+              </Text>
+            </View>
+          </Marker>
         ))}
       </MapView>
 
@@ -183,6 +197,45 @@ const styles = StyleSheet.create({
   },
   cityTextActive: {
     color: '#fff',
+  },
+  markerWrap: {
+    alignItems: 'center',
+  },
+  markerBubble: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#fff',
+    borderWidth: 3,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  markerImage: {
+    width: 28,
+    height: 28,
+  },
+  markerArrow: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 8,
+    borderRightWidth: 8,
+    borderTopWidth: 10,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: '#fff',
+    marginTop: -2,
+  },
+  markerLabel: {
+    marginTop: 4,
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#1a1a2e',
+    maxWidth: 80,
   },
 });
 
