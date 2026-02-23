@@ -12,6 +12,44 @@ const CITIES = [
 
 function App() {
   const [selected, setSelected] = useState(0);
+  const [markers, setMarkers] = useState([
+    {
+      coordinate: {
+        latitude: -22.90684,
+        longitude: -43.17289,
+      },
+      title: 'Rio de Janeiro',
+      description: 'test description',
+      pinColor: 'green',
+    },
+    {
+      coordinate: {
+        latitude: -23.55052,
+        longitude: -46.63331,
+      },
+      title: 'São Paulo',
+      description: 'test description',
+      pinColor: 'blue',
+    },
+    {
+      coordinate: {
+        latitude: -15.7801,
+        longitude: -47.9292,
+      },
+      title: 'Brasília',
+      description: 'test description',
+      pinColor: 'red',
+    },
+    {
+      coordinate: {
+        latitude: -12.9714,
+        longitude: -38.5124,
+      },
+      title: 'Salvador',
+      description: 'test description',
+      pinColor: 'yellow',
+    },
+  ]);
 
   const region: Region = {
     latitude: CITIES[selected].latitude,
@@ -27,6 +65,17 @@ function App() {
         style={styles.map}
         region={region}
         showsTraffic={true}
+        onPress={event =>
+          setMarkers([
+            ...markers,
+            {
+              coordinate: event.nativeEvent.coordinate,
+              title: 'New Marker',
+              description: 'test description',
+              pinColor: 'green',
+            },
+          ])
+        }
         // zoomEnabled={false}
         // rotateEnabled={false}
         // scrollEnabled={false}
@@ -35,13 +84,15 @@ function App() {
         // onMapReady={() => Alert.alert('Map ready')}
         // onTouchStart={() => Alert.alert('Map touched')}
       >
-        <Marker
-          coordinate={{
-            latitude: CITIES[selected].latitude,
-            longitude: CITIES[selected].longitude,
-          }}
-          title={CITIES[selected].name}
-        />
+        {markers.map((marker, index) => (
+          <Marker
+            key={index}
+            coordinate={marker.coordinate}
+            title={marker.title}
+            description={marker.description}
+            pinColor={marker.pinColor}
+          />
+        ))}
       </MapView>
 
       <SafeAreaView style={styles.overlay} edges={['bottom']}>
