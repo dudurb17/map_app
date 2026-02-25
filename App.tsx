@@ -5,14 +5,55 @@ import {
   Text,
   PermissionsAndroid,
   Platform,
+  TouchableOpacity,
 } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Region } from 'react-native-maps';
 import { useEffect, useState } from 'react';
 import Geolocation from '@react-native-community/geolocation';
+import MapViewDirections from 'react-native-maps-directions';
+import { MAPS_DIRECTIONS_API_KEY } from '@env';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+type Place = {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+};
+
+const PLACES: Place[] = [
+  { id: 'sp', name: 'São Paulo', latitude: -23.55052, longitude: -46.633308 },
+  {
+    id: 'rj',
+    name: 'Rio de Janeiro',
+    latitude: -22.906847,
+    longitude: -43.172897,
+  },
+  {
+    id: 'bh',
+    name: 'Belo Horizonte',
+    latitude: -19.916681,
+    longitude: -43.934493,
+  },
+];
 
 function App() {
   const [region, setRegion] = useState<Region | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
+
+  const origin = region && {
+    latitude: region.latitude,
+    longitude: region.longitude,
+  };
+
+  const shouldShowRoute =
+    origin &&
+    selectedPlace &&
+    Math.hypot(
+      origin.latitude - selectedPlace.latitude,
+      origin.longitude - selectedPlace.longitude,
+    ) > 0.0005;
 
   useEffect(() => {
     const requestLocationPermission = async () => {
@@ -73,15 +114,57 @@ function App() {
   }
 
   return (
-    <View style={styles.container}>
-      <MapView
-        provider={PROVIDER_GOOGLE}
-        style={styles.map}
-        showsTraffic={true}
-        showsUserLocation={true}
-        initialRegion={region}
-      />
-    </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
+        <MapView
+          provider={PROVIDER_GOOGLE}
+          style={styles.map}
+          showsTraffic={true}
+          showsUserLocation={true}
+          initialRegion={region}
+        >
+          {shouldShowRoute && origin && selectedPlace && (
+            <MapViewDirections
+              origin={origin}
+              destination={{
+                latitude: selectedPlace.latitude,
+                longitude: selectedPlace.longitude,
+              }}
+              apikey={MAPS_DIRECTIONS_API_KEY}
+              strokeColor="green"
+              strokeWidth={3}
+              onError={err => {
+                console.log('Directions error', err);
+              }}
+            />
+          )}
+        </MapView>
+        <View style={styles.overlay}>
+          <Text style={styles.title}>Escolha um destino</Text>
+          <View style={styles.cityList}>
+            {PLACES.map(place => {
+              const isActive = selectedPlace?.id === place.id;
+              return (
+                <TouchableOpacity
+                  key={place.id}
+                  style={[
+                    styles.cityButton,
+                    isActive && styles.cityButtonActive,
+                  ]}
+                  onPress={() => setSelectedPlace(place)}
+                >
+                  <Text
+                    style={[styles.cityText, isActive && styles.cityTextActive]}
+                  >
+                    {place.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }
 

@@ -41,6 +41,7 @@ android/secrets.gradle.properties
 node_modules/
 npm-debug.log
 yarn-error.log
+.env
 
 # fastlane
 #
