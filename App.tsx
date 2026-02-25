@@ -1,144 +1,86 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE, Region } from 'react-native-maps';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState } from 'react';
-
-const CITIES = [
-  { name: 'Rio de Janeiro', latitude: -22.90684, longitude: -43.17289 },
-  { name: 'São Paulo', latitude: -23.55052, longitude: -46.63331 },
-  { name: 'Brasília', latitude: -15.7801, longitude: -47.9292 },
-  { name: 'Salvador', latitude: -12.9714, longitude: -38.5124 },
-];
+import {
+  StyleSheet,
+  View,
+  ActivityIndicator,
+  Text,
+  PermissionsAndroid,
+  Platform,
+} from 'react-native';
+import MapView, { PROVIDER_GOOGLE, Region } from 'react-native-maps';
+import { useEffect, useState } from 'react';
+import Geolocation from '@react-native-community/geolocation';
 
 function App() {
-  const [selected, setSelected] = useState(0);
-  const [markers, setMarkers] = useState([
-    {
-      coordinate: {
-        latitude: -22.90684,
-        longitude: -43.17289,
-      },
-      image: require('./src/assets/images/carro.png'),
-      title: 'Rio de Janeiro',
-      description: 'test description',
-      pinColor: 'green',
-    },
-    {
-      coordinate: {
-        latitude: -23.55052,
-        longitude: -46.63331,
-      },
-      image: require('./src/assets/images/carro_right.png'),
-      title: 'São Paulo',
-      description: 'test description',
-      pinColor: 'blue',
-    },
-    {
-      image: require('./src/assets/images/carro_left.png'),
-      coordinate: {
-        latitude: -15.7801,
-        longitude: -47.9292,
-      },
-      title: 'Brasília',
-      description: 'test description',
-      pinColor: 'red',
-    },
-    {
-      image: require('./src/assets/images/carro_down.png'),
-      coordinate: {
-        latitude: -12.9714,
-        longitude: -38.5124,
-      },
-      title: 'Salvador',
-      description: 'test description',
-      pinColor: 'yellow',
-    },
-  ]);
+  const [region, setRegion] = useState<Region | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const region: Region = {
-    latitude: CITIES[selected].latitude,
-    longitude: CITIES[selected].longitude,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421,
-  };
+  useEffect(() => {
+    const requestLocationPermission = async () => {
+      try {
+        if (Platform.OS === 'android') {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          );
+
+          if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+            setLoading(false);
+            return;
+          }
+        }
+
+        Geolocation.getCurrentPosition(
+          position => {
+            const { latitude, longitude } = position.coords;
+
+            setRegion({
+              latitude,
+              longitude,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            });
+            setLoading(false);
+          },
+          geoError => {
+            console.log(geoError);
+            setLoading(false);
+          },
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
+        );
+      } catch (e) {
+        console.log(e);
+        setLoading(false);
+      }
+    };
+
+    requestLocationPermission();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#1a1a2e" />
+        <Text style={styles.loadingText}>Obtendo sua localização...</Text>
+      </View>
+    );
+  }
+
+  if (!region) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.errorText}>Não foi possível carregar o mapa.</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <MapView
         provider={PROVIDER_GOOGLE}
         style={styles.map}
-        region={region}
         showsTraffic={true}
-        // onPress={event =>
-        //   setMarkers([
-        //     ...markers,
-        //     {
-        //       coordinate: event.nativeEvent.coordinate,
-        //       title: 'New Marker',
-        //       description: 'test description',
-        //       pinColor: 'green',
-        //     },
-        //   ])
-        // }
-        // zoomEnabled={false}
-        // rotateEnabled={false}
-        // scrollEnabled={false}
-        // mapType="hybrid"  // satellite, terrain, hybrid
-        // onRegionChangeComplete={() => Alert.alert('Region changed')}
-        // onMapReady={() => Alert.alert('Map ready')}
-        // onTouchStart={() => Alert.alert('Map touched')}
-      >
-        {markers.map((marker, index) => (
-          <Marker
-            key={`${marker.title}-${index}`}
-            coordinate={marker.coordinate}
-            anchor={{ x: 0.5, y: 1 }}
-            tracksViewChanges={false}
-            title={marker.title}
-            description={marker.description}
-          >
-            <View style={styles.markerWrap}>
-              <View style={[styles.markerBubble, { borderColor: marker.pinColor }]}>
-                <Image
-                  source={marker.image}
-                  style={styles.markerImage}
-                  resizeMode="contain"
-                />
-              </View>
-              <View style={[styles.markerArrow, { borderTopColor: marker.pinColor }]} />
-              <Text style={styles.markerLabel} numberOfLines={1}>
-                {marker.title}
-              </Text>
-            </View>
-          </Marker>
-        ))}
-      </MapView>
-
-      <SafeAreaView style={styles.overlay} edges={['bottom']}>
-        <Text style={styles.title}>Explorar cidades</Text>
-        <View style={styles.cityList}>
-          {CITIES.map((city, index) => (
-            <TouchableOpacity
-              key={city.name}
-              style={[
-                styles.cityButton,
-                selected === index && styles.cityButtonActive,
-              ]}
-              onPress={() => setSelected(index)}
-              activeOpacity={0.7}
-            >
-              <Text
-                style={[
-                  styles.cityText,
-                  selected === index && styles.cityTextActive,
-                ]}
-              >
-                {city.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </SafeAreaView>
+        showsUserLocation={true}
+        initialRegion={region}
+      />
     </View>
   );
 }
@@ -149,6 +91,24 @@ const styles = StyleSheet.create({
   },
   map: {
     ...StyleSheet.absoluteFillObject,
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#1a1a2e',
+    fontWeight: '500',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#c00',
+    textAlign: 'center',
+    paddingHorizontal: 24,
   },
   overlay: {
     position: 'absolute',
