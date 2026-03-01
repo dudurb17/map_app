@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Region } from 'react-native-maps';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Geolocation from '@react-native-community/geolocation';
 import MapViewDirections from 'react-native-maps-directions';
 import { MAPS_DIRECTIONS_API_KEY } from '@env';
@@ -41,6 +41,8 @@ function App() {
   const [region, setRegion] = useState<Region | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
+
+  const mapRef = useRef<MapView | null>(null);
 
   const origin = region && {
     latitude: region.latitude,
@@ -85,11 +87,9 @@ function App() {
             console.log(geoError);
             setLoading(false);
           },
-          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
         );
       } catch (e) {
         console.log(e);
-        setLoading(false);
       }
     };
 
@@ -105,22 +105,16 @@ function App() {
     );
   }
 
-  if (!region) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>Não foi possível carregar o mapa.</Text>
-      </View>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.container}>
         <MapView
+          ref={mapRef}
           provider={PROVIDER_GOOGLE}
           style={styles.map}
           showsTraffic={true}
           showsUserLocation={true}
+          // @ts-ignore
           initialRegion={region}
         >
           {shouldShowRoute && origin && selectedPlace && (
@@ -135,6 +129,14 @@ function App() {
               strokeWidth={3}
               onError={err => {
                 console.log('Directions error', err);
+              }}
+              onReady={result => {
+                if (mapRef.current) {
+                  mapRef.current.fitToCoordinates(result.coordinates, {
+                    edgePadding: { top: 80, right: 40, bottom: 220, left: 40 },
+                    animated: true,
+                  });
+                }
               }}
             />
           )}
